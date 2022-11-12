@@ -2,8 +2,10 @@ from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGIS
 from prometheus_client import start_http_server
 import json
 import time
+import datetime
 import yaml
 import subprocess
+import os
 
 class CustomCollector(object):
 
@@ -14,18 +16,33 @@ class CustomCollector(object):
         #res = subprocess.check_output(["./speedtest", "--json"])
         #jdata = res.decode("utf-8")
         ddata = json.loads(jdata)
-        self.lat = round(ddata["servers"][0]["latency"], 2)
-        self.dl = round(ddata["servers"][0]["dl_speed"], 2)
+        self.lat = round(((ddata["servers"][0]["latency"] / 1000000.0)%60), 2)  # micros to sec
+        self.dl = round(ddata["servers"][0]["dl_speed"], 2)  # mbps
         self.up = round(ddata["servers"][0]["ul_speed"], 2)
+		self.timenow = datetime.datetime.now().astimezone().replace(microsecond=0).isoformat()
+
     def collect(self):
         yield GaugeMetricFamily('my_speedtest_gauge', 'Help text', value=10)
-        c = CounterMetricFamily('Speedtest', 'Help text dva', labels=['foo'])
-        c.add_metric(['ul_speed'], self.up)
-        c.add_metric(['dl_speed'], self.dl)
-        c.add_metric(['latency'], self.lat)
+        c = CounterMetricFamily('Speedtest', 'Up and Down in mbps, Latency in sec', labels=[self.timenow])
+        c.add_metric(['Upload'], self.up)
+        c.add_metric(['Download'], self.dl)
+        c.add_metric(['Latency'], self.lat)
         yield c
 
-start_http_server(9000)
-REGISTRY.register(CustomCollector())
-while True:
-    time.sleep(1)
+if __name__ == "__main__":
+	port = 9000
+	frequency = 1
+	if os.path.exists('config.yaml'):
+		with open('config.yaml', 'r') as config_file:
+			try:
+				config = yaml.safe_load(config_file)
+				port = int(config['port'])
+				frequency = config['scrape_frequency']
+			except yaml.YAMLError as error:
+				print(error)
+
+	start_http_server(port)
+	REGISTRY.register(CustomCollector())
+	while True:
+		# period between collection
+		time.sleep(frequency)
