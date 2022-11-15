@@ -9,9 +9,10 @@ import os
 
 class CustomCollector(object):
     def __init__(self):
-        self.hostdict = {
-            hn: subprocess.check_output([",checkssl", hn]) for hn in hostnamelist
-        }
+        #self.hostdict = {
+        #    hn: subprocess.check_output([",checkssl", hn]) for hn in hostnamelist
+        #}
+        self.hostdict = {hn: v for hn, v in enumerate(hostnamelist)}
 
     def collect(self):
         c = CounterMetricFamily("SSL", "Days to expiration", labels=["TODO"])

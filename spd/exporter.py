@@ -17,8 +17,8 @@ class CustomCollector(object):
         # with open("data.json") as file:
         #    jdata = file.read()
         jdata = '{"timestamp":"2022-11-11 16:19:32.007","user_info":{"IP":"193.85.33.238","Lat":"50.05","Lon":"14.4","Isp":"T-Mobile Czech DSL","VLoc":"","VLat":"","VLon":""},"servers":[{"url":"http://speedtest3.t-mobile.cz:8080/speedtest/upload.php","lat":"50.0833","lon":"14.4167","name":"Prague","country":"Czechia","sponsor":"T-Mobile Czechia a.s.","id":"18718","url_2":"","host":"speedtest3.t-mobile.cz.prod.hosts.ooklaserver.net:8080","distance":3.894275259128835,"latency":11031946,"dl_speed":74.70320240773965,"ul_speed":81.8931560314277}]}'
-        res = subprocess.check_output(["./speedtest", "--json"])
-        jdata = res.decode("utf-8")
+        #res = subprocess.check_output(["./speedtest", "--json"])
+        #jdata = res.decode("utf-8")
         ddata = json.loads(jdata)
         self.lat = round(
             ((ddata["servers"][0]["latency"] / 1000000.0) % 60), 2
